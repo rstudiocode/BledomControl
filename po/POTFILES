@@ -1,0 +1,5 @@
+data/space.stakancheck.BledomControl.desktop.in
+data/space.stakancheck.BledomControl.appdata.xml.in
+data/space.stakancheck.BledomControl.gschema.xml
+src/main.py
+src/main_window.py

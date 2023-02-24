@@ -1,0 +1,7 @@
+[Desktop Entry]
+Name=BledomControl
+Exec=BledomControl
+Icon=space.stakancheck.BledomControl
+Terminal=false
+Type=Application
+StartupNotify=true

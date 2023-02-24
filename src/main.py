@@ -19,26 +19,78 @@
 
 
 import asyncio
+import logging
 import sys
-
 import gi
 
 gi.require_version('Gtk', '4.0')
-from gi.repository import Gio, Gtk
+gi.require_version(namespace='Adw', version='1')
+
+from gi.repository import Gio, Gtk, Adw
 from main_window import MainWindow
 
+Adw.init()
 
-class Application(Gtk.Application):
+
+logger = logging.getLogger('MainApp')
+stdout_handler = logging.StreamHandler(sys.stdout)
+stdout_handler.setLevel(logging.DEBUG)
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+stdout_handler.setFormatter(formatter)
+logger.addHandler(stdout_handler)
+logger.setLevel(logging.DEBUG)
+
+
+class Application(Adw.Application):
     def __init__(self):
         super().__init__(application_id='space.stakancheck.BledomControl',
                          flags=Gio.ApplicationFlags.FLAGS_NONE)
 
+        self.create_action('quit', self.exit_app, ['<primary>q'])
+        self.create_action('preferences', self.on_preferences_action)
+        self.create_action('about', self.on_about_action)
+
     def do_activate(self):
         loop = asyncio.new_event_loop()
+
         win = self.props.active_window
         if not win:
             win = MainWindow(application=self, loop=loop)
         win.present()
+
+    def do_startup(self):
+        Gtk.Application.do_startup(self)
+
+    def do_shutdown(self):
+        Gtk.Application.do_shutdown(self)
+
+    def on_preferences_action(self, action, param):
+        logger.info('Preferences...')
+
+    def on_about_action(self, action, param):
+        dialog = Adw.AboutWindow.new()
+        dialog.set_transient_for(parent=self.get_active_window())
+        dialog.set_application_name('Bledom Control')
+        dialog.set_version('0.0.1')
+        dialog.set_developer_name('Artem Sukhanov (stakancheck)')
+        dialog.set_license_type(Gtk.License(Gtk.License.GPL_3_0))
+        dialog.set_comments('App for control bluetooth led devices')
+        dialog.set_website('https://github.com/stakancheck/BledomControl')
+        dialog.set_issue_url("https://github.com/stakancheck/BledomControl/issues")
+        dialog.set_copyright('© 2023 Artem Sukhanov (stakancheck)')
+        dialog.set_developers(['stakancheck https://github.com/stakancheck'])
+        dialog.set_application_icon('help-about-symbolic')
+        dialog.present()
+
+    def exit_app(self, action, param):
+        self.quit()
+
+    def create_action(self, name, callback, shortcuts=None):
+        action = Gio.SimpleAction.new(name, None)
+        action.connect('activate', callback)
+        self.add_action(action)
+        if shortcuts:
+            self.set_accels_for_action(f'app.{name}', shortcuts)
 
 
 def main():

@@ -22,26 +22,34 @@ import asyncio
 import gi
 
 gi.require_version('Gtk', '4.0')
-gi.require_version('Adw', '1')
+gi.require_version(namespace='Adw', version='1')
 
 from gi.repository import Gio, Gtk, GLib, Adw
+
+Adw.init()
 
 
 class MainWindow(Gtk.ApplicationWindow):
     def __init__(self, loop, **kwargs):
         super().__init__(**kwargs)
-        self.set_default_size(640, 480)
-        self.set_title("My App")
 
+        self.app_name = 'Bledom Control'
+        self.loop = loop
+
+        self.set_default_size(640, 480)
+        self.set_title(title=self.app_name)
+
+        # Set app name
+        GLib.set_application_name(self.app_name)
 
         # Create title bar with about button
-        header_bar = Gtk.HeaderBar()
-        self.set_titlebar(header_bar)
+        header_bar = Gtk.HeaderBar.new()
+        self.set_titlebar(titlebar=header_bar)
 
         # Create a new menu, containing that action
         menu = Gio.Menu.new()
-        menu.append("Do Something", "win.something")  # Or you would do app.something if you had attached the
-        # action to the application
+        menu.append('Preferences', 'app.preferences')
+        menu.append("About", "app.about")
 
         # Create a popover
         self.popover = Gtk.PopoverMenu()  # Create a new popover menu
@@ -53,54 +61,39 @@ class MainWindow(Gtk.ApplicationWindow):
         self.hamburger.set_icon_name("open-menu-symbolic")  # Give it a nice icon
         header_bar.pack_end(self.hamburger)
 
-        # Set app name
-        GLib.set_application_name("My App")
-
-        # Create an action to run a *show about dialog* function we will create
-        action = Gio.SimpleAction.new("about", None)
-        action.connect("activate", self.on_about_action)
-        self.add_action(action)
-
-        menu.append("About", "win.about")
+        # Create source box container
+        source_box = Gtk.Box.new(orientation=Gtk.Orientation.VERTICAL, spacing=12)
+        self.set_child(child=source_box)
 
         # Create main box container
-        self.main_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-        self.set_child(self.main_box)
-        self.main_box.set_spacing(10)
-        self.main_box.set_margin_top(10)
-        self.main_box.set_margin_bottom(10)
-        self.main_box.set_margin_start(10)
-        self.main_box.set_margin_end(10)
+        main_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        main_box.set_spacing(10)
+        main_box.set_margin_top(10)
+        main_box.set_margin_bottom(10)
+        main_box.set_margin_start(10)
+        main_box.set_margin_end(10)
+        source_box.append(main_box)
 
-        # Create color chooser in center of window
-        color_chooser = Gtk.ColorChooserWidget()
-        self.main_box.append(color_chooser)
+        devices_continer = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12)
+        devices_continer.append(Gtk.Label.new(str='Choose device'))
+        devices_chooser_container = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=12)
+        # Create refresh button
+        refresh_button = Gtk.Button()
+        refresh_icon = Gio.ThemedIcon(name="view-refresh-symbolic")
+        refresh_image = Gtk.Image.new_from_gicon(refresh_icon)
+        refresh_button.set_child(refresh_image)
+        devices_chooser_container.append(refresh_button)
 
         # Create dropdown menu with options
         dropdown_menu = Gtk.ComboBoxText()
         dropdown_menu.append_text("Option 1")
         dropdown_menu.append_text("Option 2")
         dropdown_menu.append_text("Option 3")
-        self.main_box.append(dropdown_menu)
+        devices_chooser_container.append(dropdown_menu)
+        devices_continer.append(devices_chooser_container)
+        main_box.append(devices_continer)
 
-        # Create refresh button with icon under color chooser
-        refresh_button = Gtk.Button()
-        refresh_icon = Gio.ThemedIcon(name="view-refresh-symbolic")
-        refresh_image = Gtk.Image.new_from_gicon(refresh_icon)
-        refresh_button.set_child(refresh_image)
-        self.main_box.append(refresh_button)
-
-
-    def on_about_action(self, widget, _):
-        about = Gtk.AboutDialog()
-
-        about.set_authors(["Artem Sukhanov"])
-        about.set_copyright("Copyright 2023 by Artem Sukhanov")
-        about.set_license_type(Gtk.License.GPL_3_0)
-        about.set_website("http://example.com")
-        about.set_website_label("My Website")
-        about.set_version("1.0")
-        about.set_logo_icon_name("org.example.example")  # The icon will need to be added to appropriate location
-        # E.g. /usr/share/icons/hicolor/scalable/apps/org.example.example.svg
-
-        about.show()
+        # Create color chooser in center of window
+        color_chooser = Gtk.ColorChooserWidget.new()
+        color_chooser.set_use_alpha(False)
+        main_box.append(color_chooser)
