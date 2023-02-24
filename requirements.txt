@@ -1,0 +1,7 @@
+async-timeout>=4.0.2
+bleak>=0.19.5
+dbus-fast>=1.84.0
+pip>=22.3.1
+setuptools>=66.1.1
+wheel>=0.38.4
+customtkinter~=5.0.5
