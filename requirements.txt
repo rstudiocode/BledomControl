@@ -5,3 +5,4 @@ pip>=22.3.1
 setuptools>=66.1.1
 wheel>=0.38.4
 customtkinter~=5.0.5
+asyncio>=3.4.3
